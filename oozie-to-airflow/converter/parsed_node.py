@@ -78,9 +78,7 @@ class ParsedNode(object):
         is a python branch operator, and make a decision there.
         """
         if self.is_ok and self.is_error:
-            logging.warning(
-                "Task {} is both an error node and a ok node.".format(self.operator.get_task_id())
-            )
+            logging.warning("Task %s is both an error node and a ok node.", self.operator.get_task_id())
             self.operator.trigger_rule = TriggerRule.DUMMY
         elif not self.is_ok and not self.is_error:
             # Sets to dummy, but does not warn user about it.

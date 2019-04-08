@@ -81,7 +81,7 @@ class OozieParser(object):
         )
         p_node = parsed_node.ParsedNode(operator)
 
-        logging.info("Parsed {} as Kill Node.".format(operator.task_id))
+        logging.info("Parsed %s as Kill Node.", operator.task_id)
         self.OPERATORS[kill_node.attrib["name"]] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
@@ -94,7 +94,7 @@ class OozieParser(object):
         operator = map_class(oozie_node=end_node, task_id=end_node.attrib["name"])
         p_node = parsed_node.ParsedNode(operator)
 
-        logging.info("Parsed {} as End Node.".format(operator.task_id))
+        logging.info("Parsed %s as End Node.", operator.task_id)
         self.OPERATORS[end_node.attrib["name"]] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
@@ -114,7 +114,7 @@ class OozieParser(object):
         fork_start_op = map_class(oozie_node=fork_node, task_id=fork_name)
         p_node = parsed_node.ParsedNode(fork_start_op)
 
-        logging.info("Parsed {} as Fork Node.".format(fork_start_op.task_id))
+        logging.info("Parsed %s as Fork Node.", fork_start_op.task_id)
         paths = []
         for node in fork_node:
             if "path" in node.tag:
@@ -127,7 +127,7 @@ class OozieParser(object):
 
         for path in paths:
             p_node.add_downstream_node_name(path.attrib["name"])
-            logging.info("Added {}'s downstream: {}".format(fork_start_op.task_id, path.attrib["name"]))
+            logging.info("Added %s's downstream: %s", fork_start_op.task_id, path.attrib["name"])
             # Theoretically these will all be action nodes, however I don't
             # think that is guaranteed.
             # The end of the execution path has not been reached
@@ -147,7 +147,7 @@ class OozieParser(object):
         p_node = parsed_node.ParsedNode(operator)
         p_node.add_downstream_node_name(join_node.attrib["to"])
 
-        logging.info("Parsed {} as Join Node.".format(operator.task_id))
+        logging.info("Parsed %s as Join Node.", operator.task_id)
         self.OPERATORS[join_node.attrib["name"]] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
@@ -182,7 +182,7 @@ class OozieParser(object):
         for cases in decision_node[0]:
             p_node.add_downstream_node_name(cases.attrib["to"])
 
-        logging.info("Parsed {} as Decision Node.".format(operator.task_id))
+        logging.info("Parsed %s as Decision Node.", operator.task_id)
         self.OPERATORS[decision_node.attrib["name"]] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
@@ -221,7 +221,7 @@ class OozieParser(object):
 
         self._parse_archive_nodes(action_node, operator)
 
-        logging.info("Parsed {} as Action Node of type {}.".format(operator.task_id, action_name))
+        logging.info("Parsed %s as Action Node of type %s.", operator.task_id, action_name)
         self.DEPENDENCIES.update(operator.required_imports())
 
         # TODO A hacky way to get the correct control flow for now, fix
@@ -271,7 +271,7 @@ class OozieParser(object):
         p_node = parsed_node.ParsedNode(operator)
         p_node.add_downstream_node_name(start_node.attrib["to"])
 
-        logging.info("Parsed {} as Start Node.".format(operator.task_id))
+        logging.info("Parsed %s as Start Node.", operator.task_id)
         self.OPERATORS[start_name] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
@@ -319,7 +319,7 @@ class OozieParser(object):
         logging.info("Stripped namespaces, and replaced invalid characters.")
 
         for node in root:
-            logging.debug("Parsing node: {}".format(node))
+            logging.debug("Parsing node: %s", node)
             self.parse_node(root, node)
 
     def create_relations(self) -> None:
