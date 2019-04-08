@@ -49,14 +49,14 @@ class TestOozieConverter(unittest.TestCase):
         self.assertEqual(args.user, user)
 
     def test_write_operators(self):
-        node = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="task1"))
+        node = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="task1"))
         ops = {"task1": node}
 
         fp = io.StringIO()
         self.converter.write_operators(fp=fp, operators=ops, indent=0)
         fp.seek(0)
 
-        self.assertEqual(node.operator.convert_to_text(), fp.read())
+        self.assertEqual(node.mapper.convert_to_text(), fp.read())
 
     def test_write_relations(self):
         relations = ["task1.set_downstream(task2)", "task2.set_upstream(task1)"]

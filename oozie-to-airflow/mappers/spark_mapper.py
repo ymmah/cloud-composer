@@ -28,18 +28,17 @@ class SparkMapper(ActionMapper):
     def __init__(
         self,
         oozie_node: ET.Element,
-        task_id: str,
+        name: str,
         trigger_rule: str = TriggerRule.ALL_SUCCESS,
         params: Dict[str, str] = None,
         template: str = "spark.tpl",
         **kwargs,
     ):
-        ActionMapper.__init__(self, oozie_node, task_id, trigger_rule, **kwargs)
+        ActionMapper.__init__(self, oozie_node, name, trigger_rule, **kwargs)
         if params is None:
             params = {}
         self.template = template
         self.params = params
-        self.task_id = task_id
         self.trigger_rule = trigger_rule
         self._parse_oozie_node(oozie_node)
 
@@ -65,7 +64,7 @@ class SparkMapper(ActionMapper):
         self.driver_memory = None
         self.keytab = None
         self.principal = None
-        self.name = "airflow-spark"
+        self.spark_name = "airflow-spark"
         self.num_executors = None
         self.application_args = []
         self.env_vars = None
@@ -84,7 +83,9 @@ class SparkMapper(ActionMapper):
 
         # master url, deploy mode,
         self.application = self._test_and_set(oozie_node, "jar", "''", params=self.params, quote=True)
-        self.name = self._test_and_set(oozie_node, "name", "'airflow-spark'", params=self.params, quote=True)
+        self.spark_name = self._test_and_set(
+            oozie_node, "name", "'airflow-spark'", params=self.params, quote=True
+        )
         self.java_class = self._test_and_set(oozie_node, "class", None, params=self.params, quote=True)
 
         config_node = xml_utils.find_nodes_by_tag(oozie_node, "configuration")
@@ -184,13 +185,13 @@ class SparkMapper(ActionMapper):
         return delete_paths, mkdir_paths
 
     def convert_to_text(self):
-        op_text = render_template(template_name=self.template, **self.__dict__)
+        op_text = render_template(template_name=self.template, task_id=self.name, **self.__dict__)
 
         # If we have found a prepare node, we must reorder nodes.
         if self.delete_paths or self.mkdir_paths:
             prep_text = render_template(
                 template_name="prepare.tpl",
-                task_id=self.task_id + "_reorder",
+                task_id=self.name + "_reorder",
                 trigger_rule=self.trigger_rule,
                 delete_paths=self.delete_paths,
                 mkdir_paths=self.mkdir_paths,
@@ -206,7 +207,7 @@ class SparkMapper(ActionMapper):
 
         """
         return SparkSubmitOperator(
-            task_id=self.task_id,
+            task_id=self.name,
             trigger_rule=self.trigger_rule,
             params=self.params,
             # Spark specific
@@ -243,14 +244,14 @@ class SparkMapper(ActionMapper):
             "from airflow.operators import dummy_operator",
         }
 
-    def get_task_id(self) -> str:
+    def get_name(self) -> str:
         # If the prepare node has been parsed then we reconfigure the execution
         # path of Airflow by adding delete/mkdir bash nodes before the actual
         # spark node executes.
         if self.has_prepare():
-            return self.task_id + "_reorder"
+            return self.name + "_reorder"
         else:
-            return self.task_id
+            return self.name
 
     def has_prepare(self) -> bool:
         return bool(self.delete_paths or self.mkdir_paths)

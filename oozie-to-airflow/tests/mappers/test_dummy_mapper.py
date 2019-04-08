@@ -21,13 +21,13 @@ from airflow.utils.trigger_rule import TriggerRule
 
 class TestDummyMapper(unittest.TestCase):
     def test_create_mapper(self):
-        mapper = dummy_mapper.DummyMapper(oozie_node=None, task_id="test_id", trigger_rule=TriggerRule.DUMMY)
+        mapper = dummy_mapper.DummyMapper(oozie_node=None, name="test_id", trigger_rule=TriggerRule.DUMMY)
         # make sure everything is getting initialized correctly
-        self.assertEqual("test_id", mapper.task_id)
+        self.assertEqual("test_id", mapper.name)
         self.assertEqual(TriggerRule.DUMMY, mapper.trigger_rule)
 
     def test_convert_to_text(self):
-        mapper = dummy_mapper.DummyMapper(oozie_node=None, task_id="test_id", trigger_rule=TriggerRule.DUMMY)
+        mapper = dummy_mapper.DummyMapper(oozie_node=None, name="test_id", trigger_rule=TriggerRule.DUMMY)
         ast.parse(mapper.convert_to_text())
 
     def test_required_imports(self):

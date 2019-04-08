@@ -19,7 +19,7 @@ class PigMapper(ActionMapper, PrepareMixin, ArchiveMixin, FileMixin):
     def __init__(
         self,
         oozie_node: Element,
-        task_id: str,
+        name: str,
         trigger_rule: str = TriggerRule.ALL_SUCCESS,
         params=None,
         template_file_name: str = "pig.tpl",
@@ -27,14 +27,11 @@ class PigMapper(ActionMapper, PrepareMixin, ArchiveMixin, FileMixin):
     ):
         ArchiveMixin.__init__(self, params=params)
         FileMixin.__init__(self, params=params)
-        ActionMapper.__init__(
-            self, oozie_node=oozie_node, task_id=task_id, trigger_rule=trigger_rule, **kwargs
-        )
+        ActionMapper.__init__(self, oozie_node=oozie_node, name=name, trigger_rule=trigger_rule, **kwargs)
         if params is None:
             params = dict()
         self.template = template_file_name
         self.params = params
-        self.task_id = task_id
         self.trigger_rule = trigger_rule
         self.properties = {}
         self._parse_oozie_node()
@@ -72,7 +69,9 @@ class PigMapper(ActionMapper, PrepareMixin, ArchiveMixin, FileMixin):
 
     def convert_to_text(self) -> str:
         prepare_command = self.get_prepare_command(self.oozie_node, self.params)
-        return render_template(template_name=self.template, prepare_command=prepare_command, **self.__dict__)
+        return render_template(
+            template_name=self.template, prepare_command=prepare_command, task_id=self.name, **self.__dict__
+        )
 
     def _add_symlinks(self, destination_pig_file):
         destination_pig_file.write("set mapred.create.symlink yes;\n")

@@ -21,7 +21,7 @@ class BaseMapper:
     def __init__(
         self,
         oozie_node: Optional[Element],
-        task_id: str,
+        name: str,
         trigger_rule=TriggerRule.ALL_SUCCESS,
         params=None,
         **kwargs,
@@ -30,7 +30,7 @@ class BaseMapper:
             params = {}
         self.params = params
         self.oozie_node = oozie_node
-        self.task_id = task_id
+        self.name = name
         self.trigger_rule = trigger_rule
 
     def convert_to_text(self) -> None:
@@ -58,12 +58,12 @@ class BaseMapper:
         """
         raise NotImplementedError("Not Implemented")
 
-    def get_task_id(self) -> str:
+    def get_name(self) -> str:
         """
         Returns the task_id of the operator, this can be handy if any prepare
         statements need to be used or any reordering of operators.
         """
-        return self.task_id
+        return self.name
 
     def copy_extra_assets(self, input_directory_path: str, output_directory_path: str) -> None:
         """

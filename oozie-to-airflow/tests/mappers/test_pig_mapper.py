@@ -62,10 +62,10 @@ class TestPigMapper(unittest.TestCase):
 
     def test_create_mapper_no_jinja(self):
         mapper = pig_mapper.PigMapper(
-            oozie_node=self.et.getroot(), task_id="test_id", trigger_rule=TriggerRule.DUMMY
+            oozie_node=self.et.getroot(), name="test_id", trigger_rule=TriggerRule.DUMMY
         )
         # make sure everything is getting initialized correctly
-        self.assertEqual("test_id", mapper.task_id)
+        self.assertEqual("test_id", mapper.name)
         self.assertEqual(TriggerRule.DUMMY, mapper.trigger_rule)
         self.assertEqual(self.et.getroot(), mapper.oozie_node)
         self.assertEqual("localhost:8032", mapper.resource_manager)
@@ -91,11 +91,11 @@ class TestPigMapper(unittest.TestCase):
         }
 
         mapper = pig_mapper.PigMapper(
-            oozie_node=self.et.getroot(), task_id="test_id", trigger_rule=TriggerRule.DUMMY, params=params
+            oozie_node=self.et.getroot(), name="test_id", trigger_rule=TriggerRule.DUMMY, params=params
         )
 
         # make sure everything is getting initialized correctly
-        self.assertEqual("test_id", mapper.task_id)
+        self.assertEqual("test_id", mapper.name)
         self.assertEqual(TriggerRule.DUMMY, mapper.trigger_rule)
         self.assertEqual(self.et.getroot(), mapper.oozie_node)
         self.assertEqual("localhost:9999", mapper.resource_manager)
@@ -110,7 +110,7 @@ class TestPigMapper(unittest.TestCase):
     def test_convert_to_text(self):
         mapper = pig_mapper.PigMapper(
             oozie_node=self.et.getroot(),
-            task_id="test_id",
+            name="test_id",
             trigger_rule=TriggerRule.DUMMY,
             params={"dataproc_cluster": "my-cluster", "gcp_region": "europe-west3"},
         )

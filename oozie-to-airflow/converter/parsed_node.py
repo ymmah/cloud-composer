@@ -20,8 +20,8 @@ from mappers.base_mapper import BaseMapper
 
 
 class ParsedNode(object):
-    def __init__(self, operator: BaseMapper):
-        self.operator = operator
+    def __init__(self, mapper: BaseMapper):
+        self.mapper = mapper
         self.downstream_names: [str] = []
         self.is_error: bool = False
         self.is_ok: bool = False
@@ -78,12 +78,12 @@ class ParsedNode(object):
         is a python branch operator, and make a decision there.
         """
         if self.is_ok and self.is_error:
-            logging.warning("Task %s is both an error node and a ok node.", self.operator.get_task_id())
-            self.operator.trigger_rule = TriggerRule.DUMMY
+            logging.warning("Task %s is both an error node and a ok node.", self.mapper.get_name())
+            self.mapper.trigger_rule = TriggerRule.DUMMY
         elif not self.is_ok and not self.is_error:
             # Sets to dummy, but does not warn user about it.
-            self.operator.trigger_rule = TriggerRule.DUMMY
+            self.mapper.trigger_rule = TriggerRule.DUMMY
         elif self.is_ok:
-            self.operator.trigger_rule = TriggerRule.ONE_SUCCESS
+            self.mapper.trigger_rule = TriggerRule.ONE_SUCCESS
         else:
-            self.operator.trigger_rule = TriggerRule.ONE_FAILED
+            self.mapper.trigger_rule = TriggerRule.ONE_FAILED

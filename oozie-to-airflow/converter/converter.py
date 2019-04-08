@@ -129,9 +129,9 @@ class OozieConverter:
         :param indent: integer of how many spaces to indent entire operator
         """
         for op in operators.values():
-            fp.write(textwrap.indent(op.operator.convert_to_text(), indent * " "))
-            logging.info("Wrote Airflow Task ID: %s", op.operator.get_task_id())
-            op.operator.copy_extra_assets(
+            fp.write(textwrap.indent(op.mapper.convert_to_text(), indent * " "))
+            logging.info("Wrote operator corresponding to the action named: %s", op.mapper.get_name())
+            op.mapper.copy_extra_assets(
                 input_directory_path=self.input_directory_path,
                 output_directory_path=self.output_directory_path,
             )

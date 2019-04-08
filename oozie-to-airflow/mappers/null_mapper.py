@@ -19,9 +19,8 @@ from mappers.base_mapper import BaseMapper
 
 # noinspection PyAbstractClass
 class NullMapper(BaseMapper):
-    def __init__(self, oozie_node: str = None, task_id: str = None):
-        BaseMapper.__init__(self, oozie_node=oozie_node, task_id=task_id, trigger_rule=TriggerRule.DUMMY)
-        self.task_id = task_id
+    def __init__(self, oozie_node: str = None, name: str = None):
+        BaseMapper.__init__(self, oozie_node=oozie_node, name=name, trigger_rule=TriggerRule.DUMMY)
 
     def convert_to_text(self) -> str:
         return ""

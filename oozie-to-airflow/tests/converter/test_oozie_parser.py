@@ -45,7 +45,7 @@ class TestOozieParser(unittest.TestCase):
         self.parser._parse_kill_node(kill)
 
         self.assertIn(node_name, self.parser.OPERATORS)
-        for depend in self.parser.OPERATORS[node_name].operator.required_imports():
+        for depend in self.parser.OPERATORS[node_name].mapper.required_imports():
             self.assertIn(depend, self.parser.DEPENDENCIES)
 
     def test_parse_end_node(self):
@@ -55,7 +55,7 @@ class TestOozieParser(unittest.TestCase):
         self.parser._parse_end_node(end)
 
         self.assertIn(node_name, self.parser.OPERATORS)
-        for depend in self.parser.OPERATORS[node_name].operator.required_imports():
+        for depend in self.parser.OPERATORS[node_name].mapper.required_imports():
             self.assertIn(depend, self.parser.DEPENDENCIES)
 
     @mock.patch("converter.parser.OozieParser.parse_node")
@@ -78,7 +78,7 @@ class TestOozieParser(unittest.TestCase):
         self.assertIn(node_name, self.parser.OPERATORS)
         parse_node_mock.assert_any_call(root, node1)
         parse_node_mock.assert_any_call(root, node2)
-        for depend in p_op.operator.required_imports():
+        for depend in p_op.mapper.required_imports():
             self.assertIn(depend, self.parser.DEPENDENCIES)
 
     def test_parse_join_node(self):
@@ -91,7 +91,7 @@ class TestOozieParser(unittest.TestCase):
         p_op = self.parser.OPERATORS[node_name]
         self.assertIn(node_name, self.parser.OPERATORS)
         self.assertIn(end_name, p_op.get_downstreams())
-        for depend in p_op.operator.required_imports():
+        for depend in p_op.mapper.required_imports():
             self.assertIn(depend, self.parser.DEPENDENCIES)
 
     def test_parse_decision_node(self):
@@ -111,7 +111,7 @@ class TestOozieParser(unittest.TestCase):
         self.assertIn("down1", p_op.get_downstreams())
         self.assertIn("down2", p_op.get_downstreams())
         self.assertIn("end1", p_op.get_downstreams())
-        for depend in p_op.operator.required_imports():
+        for depend in p_op.mapper.required_imports():
             self.assertIn(depend, self.parser.DEPENDENCIES)
 
     @mock.patch("uuid.uuid4")
@@ -126,7 +126,7 @@ class TestOozieParser(unittest.TestCase):
         p_op = self.parser.OPERATORS[node_name]
         self.assertIn(node_name, self.parser.OPERATORS)
         self.assertIn(end_name, p_op.get_downstreams())
-        for depend in p_op.operator.required_imports():
+        for depend in p_op.mapper.required_imports():
             self.assertIn(depend, self.parser.DEPENDENCIES)
 
     def test_parse_action_node_ssh(self):
@@ -155,7 +155,7 @@ class TestOozieParser(unittest.TestCase):
         self.assertIn(node_name, self.parser.OPERATORS)
         self.assertIn("end1", p_op.get_downstreams())
         self.assertEqual("fail1", p_op.get_error_downstream_name())
-        for depend in p_op.operator.required_imports():
+        for depend in p_op.mapper.required_imports():
             self.assertIn(depend, self.parser.DEPENDENCIES)
 
     def test_parse_action_node_unknown(self):
@@ -178,7 +178,7 @@ class TestOozieParser(unittest.TestCase):
         self.assertIn(NODE_NAME, self.parser.OPERATORS)
         self.assertIn("end1", p_op.get_downstreams())
         self.assertEqual("fail1", p_op.get_error_downstream_name())
-        for depend in p_op.operator.required_imports():
+        for depend in p_op.mapper.required_imports():
             self.assertIn(depend, self.parser.DEPENDENCIES)
 
     @mock.patch("converter.parser.OozieParser._parse_action_node")
@@ -231,17 +231,17 @@ class TestOozieParser(unittest.TestCase):
         decision_mock.assert_called_once_with(decision)
 
     def test_create_relations(self):
-        op1 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="task1"))
+        op1 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="task1"))
         op1.downstream_names = ["task2", "task3"]
         op1.error_xml = "fail1"
-        op2 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="task2"))
+        op2 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="task2"))
         op2.downstream_names = ["task3"]
         op2.error_xml = "fail1"
-        op3 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="task3"))
+        op3 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="task3"))
         op3.downstream_names = ["end1"]
         op3.error_xml = "fail1"
-        end = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="end1"))
-        fail = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="fail1"))
+        end = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="end1"))
+        fail = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="fail1"))
         op_dict = {"task1": op1, "task2": op2, "task3": op3, "end1": end, "fail1": fail}
         self.parser.OPERATORS.update(op_dict)
         self.parser.create_relations()
@@ -255,17 +255,17 @@ class TestOozieParser(unittest.TestCase):
         self.assertIn("task1.set_downstream(fail1)", self.parser.relations)
 
     def test_update_trigger_rules(self):
-        op1 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="task1"))
+        op1 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="task1"))
         op1.downstream_names = ["task2", "task3"]
         op1.error_xml = "fail1"
-        op2 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="task2"))
+        op2 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="task2"))
         op2.downstream_names = ["task3"]
         op2.error_xml = "fail1"
-        op3 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="task3"))
+        op3 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="task3"))
         op3.downstream_names = ["end1"]
         op3.error_xml = "fail1"
-        end = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="end1"))
-        fail = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, task_id="fail1"))
+        end = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="end1"))
+        fail = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="fail1"))
         op_dict = {"task1": op1, "task2": op2, "task3": op3, "end1": end, "fail1": fail}
 
         self.parser.OPERATORS.update(op_dict)
