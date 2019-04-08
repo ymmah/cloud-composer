@@ -27,6 +27,7 @@ from airflow.utils.trigger_rule import TriggerRule
 from converter import parsed_node
 import utils.xml_utils
 from converter.parsed_node import ParsedNode
+from converter.relation import Relation
 from mappers.action_mapper import ActionMapper
 from mappers.base_mapper import BaseMapper
 from mappers.file_archive_mixins import FileMixin, ArchiveMixin
@@ -332,11 +333,11 @@ class OozieParser(object):
         logging.info("Parsing relations between operators.")
         for node_name, p_node in ops.items():
             for downstream in p_node.get_downstreams():
-                ok_str = "{}.set_downstream({})".format(node_name, downstream)
-                self.relations.add(ok_str)
+                relation = Relation(from_name=node_name, to_name=downstream)
+                self.relations.add(relation)
             if p_node.get_error_downstream_name():
-                error_str = "{}.set_downstream({})".format(node_name, p_node.get_error_downstream_name())
-                self.relations.add(error_str)
+                relation = Relation(from_name=node_name, to_name=p_node.get_error_downstream_name())
+                self.relations.add(relation)
 
     def update_trigger_rules(self) -> None:
         """

@@ -18,6 +18,7 @@ import oozie_converter
 from converter import parsed_node
 from converter.converter import OozieConverter
 from converter.mappers import CONTROL_MAP, ACTION_MAP
+from converter.relation import Relation
 from definitions import TPL_PATH
 import jinja2
 from mappers import dummy_mapper
@@ -59,23 +60,30 @@ class TestOozieConverter(unittest.TestCase):
         self.assertEqual(node.mapper.convert_to_text(), fp.read())
 
     def test_write_relations(self):
-        relations = ["task1.set_downstream(task2)", "task2.set_upstream(task1)"]
+        relations = [
+            Relation(from_name="task1", to_name="task2"),
+            Relation(from_name="task2", to_name="task1"),
+        ]
 
         fp = io.StringIO()
         OozieConverter.write_relations(fp, relations, indent=0)
         fp.seek(0)
 
-        expected = "\n".join(relations) + "\n"
+        expected = """
+task1.set_downstream(task2)
+
+task2.set_downstream(task1)
+"""
         self.assertEqual(expected, fp.read())
 
     def test_write_dependencies(self):
         depends = ["import airflow", "from jaws import thriller"]
 
         fp = io.StringIO()
-        OozieConverter.write_relations(fp, depends, indent=0)
+        OozieConverter.write_dependencies(fp, depends)
         fp.seek(0)
 
-        expected = "\n".join(depends) + "\n"
+        expected = "\n".join(depends) + "\n\n"
         self.assertEqual(expected, fp.read())
 
     def test_write_dag_header(self):

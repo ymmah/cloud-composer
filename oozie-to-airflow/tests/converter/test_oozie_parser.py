@@ -19,6 +19,7 @@ from xml.etree import ElementTree as ET
 from converter import parser
 from converter import parsed_node
 from converter.mappers import ACTION_MAP, CONTROL_MAP
+from converter.relation import Relation
 from definitions import ROOT_DIR
 from mappers import dummy_mapper
 from mappers import ssh_mapper
@@ -246,13 +247,13 @@ class TestOozieParser(unittest.TestCase):
         self.parser.OPERATORS.update(op_dict)
         self.parser.create_relations()
 
-        self.assertIn("task3.set_downstream(fail1)", self.parser.relations)
-        self.assertIn("task3.set_downstream(end1)", self.parser.relations)
-        self.assertIn("task1.set_downstream(task2)", self.parser.relations)
-        self.assertIn("task1.set_downstream(task3)", self.parser.relations)
-        self.assertIn("task2.set_downstream(task3)", self.parser.relations)
-        self.assertIn("task2.set_downstream(fail1)", self.parser.relations)
-        self.assertIn("task1.set_downstream(fail1)", self.parser.relations)
+        self.assertIn(Relation("task3", "fail1"), self.parser.relations)
+        self.assertIn(Relation("task3", "end1"), self.parser.relations)
+        self.assertIn(Relation("task1", "task2"), self.parser.relations)
+        self.assertIn(Relation("task1", "task3"), self.parser.relations)
+        self.assertIn(Relation("task2", "task3"), self.parser.relations)
+        self.assertIn(Relation("task2", "fail1"), self.parser.relations)
+        self.assertIn(Relation("task1", "fail1"), self.parser.relations)
 
     def test_update_trigger_rules(self):
         op1 = parsed_node.ParsedNode(dummy_mapper.DummyMapper(oozie_node=None, name="task1"))

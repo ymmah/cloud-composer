@@ -23,6 +23,7 @@ import logging
 
 from converter import parser
 from converter.parsed_node import ParsedNode
+from converter.relation import Relation
 from mappers.action_mapper import ActionMapper
 from mappers.base_mapper import BaseMapper
 from utils import el_utils
@@ -94,22 +95,21 @@ class OozieConverter:
         """
         return el_utils.parse_els(self.job_properties_file, params)
 
-    def create_dag_file(self, operators: Dict[str, ParsedNode], depends: [str], relations: [str]):
+    def create_dag_file(self, operators: Dict[str, ParsedNode], depends: [str], relations: [Relation]):
         """
         Writes to a file the Apache Oozie parsed workflow in Airflow's DAG format.
 
         :param operators: A dictionary of {'task_id': ParsedNode object}
         :param depends: A list of strings that will be interpreted as import
             statements
-        :param relations: A list of strings corresponding to operator relations,
-            such as task_1.set_downstream(task_2)
+        :param relations: A list of Relation corresponding to operator relations
         """
         fn = self.output_dag_name
         with open(fn, "w") as f:
             logging.info("Saving to file: %s", fn)
             self.write_dag(depends, f, operators, relations)
 
-    def write_dag(self, depends: [str], f: TextIO, operators: Dict[str, ParsedNode], relations: [str]):
+    def write_dag(self, depends: [str], f: TextIO, operators: Dict[str, ParsedNode], relations: [Relation]):
         """
         Template method, can be overridden.
         """
@@ -139,14 +139,13 @@ class OozieConverter:
     @staticmethod
     def write_relations(fp, relations, indent=INDENT):
         """
-        Each relation is in the form of: task_1.setdownstream(task_2)
+        Write the relations to the given opened file object.
 
         These are each written on a new line.
         """
         logging.info("Writing control flow dependencies to file.")
-        for relation in relations:
-            fp.write(textwrap.indent(relation, indent * " "))
-            fp.write("\n")
+        relations_str = render_template(template_name="relations.tpl", relations=relations)
+        fp.write(textwrap.indent(relations_str, indent * " "))
 
     @staticmethod
     def write_dependencies(fp, depends, line_prefix=""):
