@@ -4,6 +4,7 @@ from xml.etree.ElementTree import Element
 
 from airflow.utils.trigger_rule import TriggerRule
 
+from converter.relation import Relation
 from mappers.action_mapper import ActionMapper
 from mappers.file_archive_mixins import FileMixin, ArchiveMixin
 from mappers.prepare_mixin import PrepareMixin
@@ -69,6 +70,7 @@ class PigMapper(ActionMapper, PrepareMixin, ArchiveMixin, FileMixin):
 
     def convert_to_text(self) -> str:
         prepare_command = self.get_prepare_command(self.oozie_node, self.params)
+        relations = [Relation(from_name=self.name, to_name=self.name + "_prepare")]
         return render_template(
             template_name=self.template, prepare_command=prepare_command, task_id=self.name, **self.__dict__
         )
@@ -101,9 +103,9 @@ class PigMapper(ActionMapper, PrepareMixin, ArchiveMixin, FileMixin):
         if not output_directory_path:
             raise Exception("The output_directory_path should be set and is {}".format(output_directory_path))
 
-    def convert_to_airflow_op(self):
-        pass
-
     @staticmethod
     def required_imports() -> Set[str]:
         return {"from airflow.utils import dates", "from airflow.contrib.operators import dataproc_operator"}
+
+    def get_first_task_id(self):
+        return "{task_id}_prepare".format(task_id=self.name)

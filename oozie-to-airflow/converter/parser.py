@@ -41,7 +41,7 @@ class OozieParser(object):
     relations: Set[str]
     PARAMS: Dict[str, str]
     DEPENDENCIES: Set[str]  # TODO: Check is set likely maintain insertion order (Python 3.6 ?)
-    OPERATORS: Dict[str, ParsedNode]
+    NODES: Dict[str, ParsedNode]
 
     def __init__(
         self,
@@ -60,7 +60,7 @@ class OozieParser(object):
         self.PARAMS = params
         # Dictionary is ordered purely for output being somewhat ordered the
         # same as how Oozie workflow was parsed.
-        self.OPERATORS = OrderedDict()
+        self.NODES = OrderedDict()
         # These are the general dependencies required that every operator
         # requires. The o2a_libs are for the external EL function parsing.
         self.DEPENDENCIES = {
@@ -83,7 +83,7 @@ class OozieParser(object):
         p_node = parsed_node.ParsedNode(operator)
 
         logging.info("Parsed %s as Kill Node.", operator.name)
-        self.OPERATORS[kill_node.attrib["name"]] = p_node
+        self.NODES[kill_node.attrib["name"]] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
     def _parse_end_node(self, end_node):
@@ -96,7 +96,7 @@ class OozieParser(object):
         p_node = parsed_node.ParsedNode(operator)
 
         logging.info("Parsed %s as End Node.", operator.name)
-        self.OPERATORS[end_node.attrib["name"]] = p_node
+        self.NODES[end_node.attrib["name"]] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
     def _parse_fork_node(self, root, fork_node):
@@ -123,7 +123,7 @@ class OozieParser(object):
                 curr_name = node.attrib["start"]
                 paths.append(utils.xml_utils.find_node_by_name(root, curr_name))
 
-        self.OPERATORS[fork_name] = p_node
+        self.NODES[fork_name] = p_node
         self.DEPENDENCIES.update(fork_start_op.required_imports())
 
         for path in paths:
@@ -133,7 +133,7 @@ class OozieParser(object):
             # think that is guaranteed.
             # The end of the execution path has not been reached
             self.parse_node(root, path)
-            if path.attrib["name"] not in self.OPERATORS:
+            if path.attrib["name"] not in self.NODES:
                 root.remove(path)
 
     def _parse_join_node(self, join_node):
@@ -149,7 +149,7 @@ class OozieParser(object):
         p_node.add_downstream_node_name(join_node.attrib["to"])
 
         logging.info("Parsed %s as Join Node.", operator.name)
-        self.OPERATORS[join_node.attrib["name"]] = p_node
+        self.NODES[join_node.attrib["name"]] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
     def _parse_decision_node(self, decision_node):
@@ -184,7 +184,7 @@ class OozieParser(object):
             p_node.add_downstream_node_name(cases.attrib["to"])
 
         logging.info("Parsed %s as Decision Node.", operator.name)
-        self.OPERATORS[decision_node.attrib["name"]] = p_node
+        self.NODES[decision_node.attrib["name"]] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
     def _parse_action_node(self, action_node: ET.Element):
@@ -228,9 +228,9 @@ class OozieParser(object):
         # TODO A hacky way to get the correct control flow for now, fix
         if operator.has_prepare():
             print(operator.name)
-            self.OPERATORS[operator.name] = ParsedNode(NullMapper(name=operator.name))
+            self.NODES[operator.name] = ParsedNode(NullMapper(name=operator.name))
 
-        self.OPERATORS[operator.get_name()] = p_node
+        self.NODES[operator.get_name()] = p_node
 
     @staticmethod
     def _parse_file_nodes(action_node, operator: ActionMapper):
@@ -273,7 +273,7 @@ class OozieParser(object):
         p_node.add_downstream_node_name(start_node.attrib["to"])
 
         logging.info("Parsed %s as Start Node.", operator.name)
-        self.OPERATORS[start_name] = p_node
+        self.NODES[start_name] = p_node
         self.DEPENDENCIES.update(operator.required_imports())
 
     def parse_node(self, root, node):
@@ -329,14 +329,18 @@ class OozieParser(object):
         returns a set of logical connectives for each task in Airflow.
         :return: Set with strings of task's downstream nodes.
         """
-        ops = self.OPERATORS
         logging.info("Parsing relations between operators.")
-        for node_name, p_node in ops.items():
+        for node_name, p_node in self.NODES.items():
             for downstream in p_node.get_downstreams():
-                relation = Relation(from_name=node_name, to_name=downstream)
+                relation = Relation(
+                    from_name=p_node.get_last_task_id(), to_name=self.NODES[downstream].get_first_task_id()
+                )
                 self.relations.add(relation)
             if p_node.get_error_downstream_name():
-                relation = Relation(from_name=node_name, to_name=p_node.get_error_downstream_name())
+                downstream = p_node.get_error_downstream_name()
+                relation = Relation(
+                    from_name=p_node.get_last_task_id(), to_name=self.NODES[downstream].get_first_task_id()
+                )
                 self.relations.add(relation)
 
     def update_trigger_rules(self) -> None:
@@ -344,16 +348,16 @@ class OozieParser(object):
         Updates the trigger rules of each node based on the downstream and
         error nodes.
         """
-        for operator in self.OPERATORS.values():
+        for operator in self.NODES.values():
             # If a task is referenced  by an "ok to=<task>", flip bit in parsed
             # node class
             for downstream in operator.get_downstreams():
-                self.OPERATORS[downstream].set_is_ok(True)
+                self.NODES[downstream].set_is_ok(True)
             error_name = operator.get_error_downstream_name()
             if error_name:
                 # If a task is referenced  by an "error to=<task>", flip
                 # corresponding bit in the parsed node class
-                self.OPERATORS[error_name].set_is_error(True)
+                self.NODES[error_name].set_is_error(True)
             operator.update_trigger_rule()
 
     def get_relations(self) -> Set[str]:
@@ -365,4 +369,4 @@ class OozieParser(object):
         return self.DEPENDENCIES
 
     def get_operators(self) -> Dict[str, ParsedNode]:
-        return self.OPERATORS
+        return self.NODES

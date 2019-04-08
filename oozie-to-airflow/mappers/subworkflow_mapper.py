@@ -87,9 +87,6 @@ class SubworkflowMapper(ActionMapper):
     def convert_to_text(self):
         return render_template(template_name=self.template, **self.__dict__)
 
-    def convert_to_airflow_op(self):
-        pass
-
     @staticmethod
     def required_imports() -> Set[str]:
         return {

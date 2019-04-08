@@ -23,9 +23,6 @@ class DummyMapper(BaseMapper):
     def convert_to_text(self):
         return render_template(template_name="dummy.tpl", task_id=self.name, trigger_rule=self.trigger_rule)
 
-    def convert_to_airflow_op(self):
-        return dummy_operator.DummyOperator(task_id=self.name, trigger_rule=self.trigger_rule)
-
     @staticmethod
     def required_imports() -> Set[str]:
         return {"from airflow.operators import dummy_operator"}

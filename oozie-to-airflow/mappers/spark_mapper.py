@@ -200,41 +200,6 @@ class SparkMapper(ActionMapper):
         else:
             return op_text
 
-    def convert_to_airflow_op(self) -> SparkSubmitOperator:
-        """
-        Converts the class into a SparkSubmitOperator, this requires
-        correct setup of the Airflow connection.
-
-        """
-        return SparkSubmitOperator(
-            task_id=self.name,
-            trigger_rule=self.trigger_rule,
-            params=self.params,
-            # Spark specific
-            conn_id="spark_default",
-            name=self.name,
-            application=self.application,
-            conf=self.conf,
-            files=self.files,
-            py_files=self.py_files,
-            jars=self.jars,
-            java_class=self.java_class,
-            packages=self.packages,
-            exclude_packages=self.exclude_packages,
-            repositories=self.repositories,
-            total_executor_cores=self.total_executor_cores,
-            executor_cores=self.executor_cores,
-            executor_memory=self.executor_memory,
-            driver_memory=self.driver_memory,
-            keytab=self.keytab,
-            principal=self.principal,
-            num_executors=self.num_executors,
-            application_args=self.application_args,
-            verbose=self.verbose,
-            env_vars=self.env_vars,
-            driver_classpath=self.driver_classpath,
-        )
-
     @staticmethod
     def required_imports() -> Set[str]:
         # Dummy and Bash are for the potential prepare statement

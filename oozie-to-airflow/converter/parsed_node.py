@@ -48,6 +48,12 @@ class ParsedNode(object):
     def get_error_downstream_name(self) -> str:
         return self.error_xml
 
+    def get_first_task_id(self) -> str:
+        return self.mapper.get_first_task_id()
+
+    def get_last_task_id(self) -> str:
+        return self.mapper.get_last_task_id()
+
     def set_is_error(self, is_error: bool):
         """
         A bit that switches when the node is the error downstream of any other

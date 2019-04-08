@@ -40,14 +40,6 @@ class BaseMapper:
         """
         raise NotImplementedError("Not Implemented")
 
-    def convert_to_airflow_op(self) -> None:
-        """
-        Return a corresponding Airflow Operator python object. As of now, it is
-        not used, but it could come in handy in the future for extending the
-        program.
-        """
-        raise NotImplementedError("Not Implemented")
-
     @staticmethod
     def required_imports() -> Set[str]:
         """
@@ -65,9 +57,16 @@ class BaseMapper:
         """
         return self.name
 
+    def get_last_task_id(self):
+        return self.name
+
+    def get_first_task_id(self):
+        return self.name
+
     def copy_extra_assets(self, input_directory_path: str, output_directory_path: str) -> None:
         """
         Copies extra assets required by the generated DAG - such as script files, jars etc.
+
         :param input_directory_path: oozie workflow application directory
         :param output_directory_path: output directory for the generated DAG and assets
         :return: None

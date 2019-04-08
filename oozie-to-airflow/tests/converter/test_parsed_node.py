@@ -13,6 +13,7 @@
 # limitations under the License.
 import unittest
 
+import mock
 from airflow.utils.trigger_rule import TriggerRule
 
 from converter import parsed_node
@@ -57,3 +58,19 @@ class TestParsedNode(unittest.TestCase):
         self.p_node.set_is_error(False)
         self.p_node.update_trigger_rule()
         self.assertEqual(TriggerRule.DUMMY, self.p_node.mapper.trigger_rule)
+
+
+class TestParserNodeMultipleOperators(unittest.TestCase):
+    def test_get_first_task_id(self):
+        op1 = mock.Mock(**{"get_first_task_id.return_value": "first_task_id"})
+        p_node = parsed_node.ParsedNode(op1)
+
+        self.assertEquals("first_task_id", p_node.get_first_task_id())
+        op1.get_first_task_id.assert_called_once_with()
+
+    def test_get_last_task_id(self):
+        op1 = mock.Mock(**{"get_last_task_id.return_value": "last_task_id"})
+        p_node = parsed_node.ParsedNode(op1)
+
+        self.assertEquals("last_task_id", p_node.get_last_task_id())
+        op1.get_last_task_id.assert_called_once_with()

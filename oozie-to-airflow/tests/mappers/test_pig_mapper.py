@@ -121,3 +121,9 @@ class TestPigMapper(unittest.TestCase):
         imps = pig_mapper.PigMapper.required_imports()
         imp_str = "\n".join(imps)
         ast.parse(imp_str)
+
+    def test_get_first_task_id(self):
+        mapper = pig_mapper.PigMapper(
+            oozie_node=self.et.getroot(), name="test_id", trigger_rule=TriggerRule.DUMMY
+        )
+        self.assertEqual(mapper.get_first_task_id(), "test_id_prepare")

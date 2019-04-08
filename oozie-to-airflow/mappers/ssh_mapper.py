@@ -67,18 +67,6 @@ class SSHMapper(ActionMapper):
     def convert_to_text(self) -> str:
         return render_template(template_name=self.template, task_id=self.name, **self.__dict__)
 
-    def convert_to_airflow_op(self) -> SSHOperator:
-        """
-        Oozie has 3 properties, host, arguments, command, and capture-output
-        Airflow has host and command
-
-        returns an SSH Operator
-        """
-        hook = ssh_hook.SSHHook(ssh_conn_id="ssh_default", username=self.user, remote_host=self.host)
-        return SSHOperator(
-            ssh_hook=hook, task_id=self.name, command=self.command, trigger_rule=self.trigger_rule
-        )
-
     @staticmethod
     def required_imports() -> Set[str]:
         return {

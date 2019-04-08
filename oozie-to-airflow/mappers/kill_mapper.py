@@ -13,8 +13,6 @@
 # limitations under the License.
 from typing import Set
 
-from airflow.operators.bash_operator import BashOperator
-
 from mappers.base_mapper import BaseMapper
 from utils.template_utils import render_template
 
@@ -22,9 +20,6 @@ from utils.template_utils import render_template
 class KillMapper(BaseMapper):
     def convert_to_text(self) -> str:
         return render_template(template_name="kill.tpl", task_id=self.name, trigger_rule=self.trigger_rule)
-
-    def convert_to_airflow_op(self) -> BashOperator:
-        return BashOperator(bash_command="exit 1", task_id=self.name, trigger_rule=self.trigger_rule)
 
     @staticmethod
     def required_imports() -> Set[str]:
