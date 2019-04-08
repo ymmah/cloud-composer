@@ -162,6 +162,7 @@ class OozieConverter:
     def write_dag_header(fp, dag_name, schedule_interval, start_days_ago, template="dag.tpl"):
         """
         Write the DAG header to the open file specified in the file pointer
+
         :param fp: Opened file to write to.
         :param dag_name: Desired name of DAG
         :param schedule_interval: Desired DAG schedule interval, expressed as number of days
