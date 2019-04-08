@@ -17,6 +17,7 @@ from mappers.action_mapper import ActionMapper
 from mappers.base_mapper import BaseMapper
 from mappers.decision_mapper import DecisionMapper
 from mappers.dummy_mapper import DummyMapper
+from mappers.git_mapper import GitMapper
 from mappers.kill_mapper import KillMapper
 from mappers.pig_mapper import PigMapper
 from mappers.shell_mapper import ShellMapper
@@ -38,6 +39,7 @@ ACTION_MAP: Dict[str, Type[ActionMapper]] = {
     "ssh": SSHMapper,
     "spark": SparkMapper,
     "pig": PigMapper,
+    "git": GitMapper,
     "sub-workflow": SubworkflowMapper,
     "shell": ShellMapper,
 }
