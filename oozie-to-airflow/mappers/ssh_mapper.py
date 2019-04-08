@@ -19,10 +19,10 @@ from airflow.contrib.hooks import ssh_hook
 from airflow.contrib.operators.ssh_operator import SSHOperator
 from airflow.utils.trigger_rule import TriggerRule
 
-from definitions import ROOT_DIR
 from mappers.action_mapper import ActionMapper
 from utils import el_utils
-import jinja2
+
+from utils.template_utils import render_template
 
 
 class SSHMapper(ActionMapper):
@@ -67,11 +67,7 @@ class SSHMapper(ActionMapper):
         self.host = user_host[1]
 
     def convert_to_text(self) -> str:
-        template_loader = jinja2.FileSystemLoader(searchpath=os.path.join(ROOT_DIR, "templates/"))
-        template_env = jinja2.Environment(loader=template_loader)
-
-        template = template_env.get_template(self.template)
-        return template.render(**self.__dict__)
+        return render_template(template_name=self.template, **self.__dict__)
 
     def convert_to_airflow_op(self) -> SSHOperator:
         """

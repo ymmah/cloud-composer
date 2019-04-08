@@ -11,24 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 from typing import Set
-
-import jinja2
 
 from airflow.operators import dummy_operator
 
 from mappers.base_mapper import BaseMapper
-from definitions import ROOT_DIR
+from utils.template_utils import render_template
 
 
 class DummyMapper(BaseMapper):
     def convert_to_text(self):
-        template_loader = jinja2.FileSystemLoader(searchpath=os.path.join(ROOT_DIR, "templates/"))
-        template_env = jinja2.Environment(loader=template_loader)
-
-        template = template_env.get_template("dummy.tpl")
-        return template.render(task_id=self.task_id, trigger_rule=self.trigger_rule)
+        return render_template(
+            template_name="dummy.tpl", task_id=self.task_id, trigger_rule=self.trigger_rule
+        )
 
     def convert_to_airflow_op(self):
         return dummy_operator.DummyOperator(task_id=self.task_id, trigger_rule=self.trigger_rule)
