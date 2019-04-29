@@ -212,8 +212,7 @@ class SparkMapper(ActionMapper):
             return op_text + prep_text
         return op_text
 
-    @staticmethod
-    def required_imports() -> Set[str]:
+    def required_imports(self) -> Set[str]:
         # Dummy and Bash are for the potential prepare statement
         return {
             "from airflow.contrib.operators import spark_submit_operator",

@@ -50,24 +50,20 @@ class TestSparkMapper(unittest.TestCase):
         self.spark_node = ET.fromstring(spark_node_str)
 
     def test_create_mapper(self):
-        mapper = spark_mapper.SparkMapper(
-            oozie_node=self.spark_node, name="test_id", trigger_rule=TriggerRule.DUMMY
-        )
+        mapper = self._get_mapper()
         # make sure everything is getting initialized correctly
         self.assertEqual("test_id", mapper.name)
         self.assertEqual(TriggerRule.DUMMY, mapper.trigger_rule)
         self.assertEqual(self.spark_node, mapper.oozie_node)
 
     def test_convert_to_text(self):
-        mapper = spark_mapper.SparkMapper(
-            oozie_node=self.spark_node, name="test_id", trigger_rule=TriggerRule.DUMMY
-        )
+        mapper = self._get_mapper()
         res = mapper.convert_to_text()
         ast.parse(res)
 
-    # pylint: disable=no-self-use
     def test_required_imports(self):
-        imps = spark_mapper.SparkMapper.required_imports()
+        mapper = self._get_mapper()
+        imps = mapper.required_imports()
         imp_str = "\n".join(imps)
         ast.parse(imp_str)
 
@@ -119,9 +115,7 @@ class TestSparkMapper(unittest.TestCase):
         )
         self.spark_node.remove(self.spark_node.find("spark-opts"))
 
-        mapper = spark_mapper.SparkMapper(
-            oozie_node=self.spark_node, name="test_id", trigger_rule=TriggerRule.DUMMY
-        )
+        mapper = self._get_mapper()
 
         mapper.update_class_spark_opts(spark_opts)
 
@@ -142,3 +136,9 @@ class TestSparkMapper(unittest.TestCase):
 
         self.assertEqual(exp_del, delete_list)
         self.assertEqual(exp_mkdir, mkdir_list)
+
+    def _get_mapper(self):
+        mapper = spark_mapper.SparkMapper(
+            oozie_node=self.spark_node, name="test_id", trigger_rule=TriggerRule.DUMMY
+        )
+        return mapper
